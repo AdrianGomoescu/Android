@@ -1,24 +1,28 @@
 package com.fmi.master_app;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -34,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
     ImageView imageView;
     Button btnOpen;
 
+    private String currentPhotoPath;
+
     public static void closeDrawer(DrawerLayout drawerLayout) {
         //Check condition
         if (drawerLayout.isDrawerOpen(GravityCompat.START)){
@@ -41,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(GravityCompat.START);
         }
     }
+
+
 
 
     @Override
@@ -52,20 +60,30 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.image_view);
         btnOpen = findViewById(R.id.bt_open);
 
-        //Request for camera permission
-        if (ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{
-                    Manifest.permission.CAMERA}, 100);
-        }
 
         btnOpen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //Open camera
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(intent,100);
+                String fileName = "photo";
+                File storageDirectory = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+                try {
+                    File imageFile = File.createTempFile(fileName, ".jpg", storageDirectory);
+
+                    currentPhotoPath = imageFile.getAbsolutePath();
+
+                    Uri imageUri = FileProvider.getUriForFile(MainActivity.this,"com.fmi.master_app", imageFile);
+
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                    startActivityForResult(intent, 1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+
             }
         });
         
@@ -81,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         //Add menu item in array list
         arrayList.add("Camera");
         arrayList.add("Notes");
-        arrayList.add("About");
+        arrayList.add("Maps");
         arrayList.add("Logout");
 
         //Initialize adapter
@@ -112,11 +130,32 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100) {
-            //Get capture image
-            Bitmap captureImage = (Bitmap) data.getExtras().get("data");
-            //Set captured image to imageview
-            imageView.setImageBitmap(captureImage);
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+           Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath);
+
+           ImageView imageView = findViewById(R.id.image_view);
+           imageView.setImageBitmap(bitmap);
         }
-    };
+    }
+
+    //Share button
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.menu,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id == R.id.share){
+            ApplicationInfo api = getApplicationContext().getApplicationInfo();
+            String apkpath = api.sourceDir;
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("application/vnd.android.package-archive");
+            intent.putExtra(Intent.EXTRA_STREAM,Uri.fromFile(new File(apkpath)));
+            startActivity(Intent.createChooser(intent,"ShareVia"));
+        }
+        return true;
+    }
 }

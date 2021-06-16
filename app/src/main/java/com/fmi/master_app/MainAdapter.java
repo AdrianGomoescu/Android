@@ -64,7 +64,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
                     case 2:
                         //When position is 2, redirect to about page
-                        activity.startActivity(new Intent(activity,About.class)
+                        activity.startActivity(new Intent(activity,Maps.class)
                                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                         break;
 
