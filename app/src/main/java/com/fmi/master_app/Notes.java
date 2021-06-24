@@ -37,7 +37,7 @@ public class Notes extends AppCompatActivity {
     EditText inputText1;
     Button btnAdd, btnUpdate;
 
-    ArrayList<String> foods = new ArrayList<String>();
+    ArrayList<String> noteItem = new ArrayList<String>();
     ArrayAdapter<String> myAdapter1;
 
     //Database variables
@@ -64,7 +64,7 @@ public class Notes extends AppCompatActivity {
         //foods.add("Ham");
 
         myAdapter1 = new ArrayAdapter<String>(
-                this, android.R.layout.simple_list_item_1, foods);
+                this, android.R.layout.simple_list_item_1, noteItem);
         listView1.setAdapter(myAdapter1);
 
         //Initialize database & reference
@@ -111,7 +111,7 @@ public class Notes extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String stringVal = inputText1.getText().toString();
-                foods.set(indexVal,stringVal);
+                noteItem.set(indexVal,stringVal);
                 myAdapter1.notifyDataSetChanged();
             }
         });
@@ -123,7 +123,7 @@ public class Notes extends AppCompatActivity {
                 item = adapterView.getItemAtPosition(i).toString() + " has been deleted.";
                 Toast.makeText(Notes.this, item, Toast.LENGTH_SHORT).show();
 
-                foods.remove(i);
+                noteItem.remove(i);
                 myAdapter1.notifyDataSetChanged();
                 return true;
             }
@@ -155,12 +155,12 @@ public class Notes extends AppCompatActivity {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                foods.clear();
+                noteItem.clear();
                 for (DataSnapshot dataSnapshot: snapshot.getChildren()){
                     //Get children
                     String sValue = dataSnapshot.child("value").getValue(String.class);
                     //Add value to array list
-                    foods.add(sValue);
+                    noteItem.add(sValue);
                 }
                 listView1.setAdapter(myAdapter1);
             }
