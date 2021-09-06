@@ -137,24 +137,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Share button
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.menu,menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if(id == R.id.share){
-            ApplicationInfo api = getApplicationContext().getApplicationInfo();
-            String apkpath = api.sourceDir;
-            Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType("application/vnd.android.package-archive");
-            intent.putExtra(Intent.EXTRA_STREAM,Uri.fromFile(new File(apkpath)));
-            startActivity(Intent.createChooser(intent,"ShareVia"));
-        }
-        return true;
-    }
 }
